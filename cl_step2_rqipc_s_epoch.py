@@ -22,11 +22,11 @@ num_gpu=[0,1,2,3]
 os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(str(x) for x in num_gpu)
 device_ids=num_gpu
 # Training settings
-batch_size =64
-batch_size_tgt =64#128 #64#
+batch_size =32
+batch_size_tgt =32#128 #64#
 iteration = 10000#000#00#000
 epoch=10
-epoch_point=10
+epoch_point=5
 lr = 0.01
 momentum = 0.9
 cuda = True
@@ -97,7 +97,7 @@ def train(model):
         #if (i - 1) % 100 == 0:
         #print("learning rate: ", LEARNING_RATE)
        
-       
+        print("epoch:{}--begin time:{}".format(ep,time.asctime( time.localtime(time.time()) )))
         optimizer = torch.optim.SGD([
             {'params': model.module.sharedNet.parameters()},
             {'params': model.module.cls_fc_son1.parameters(), 'lr': LEARNING_RATE},
@@ -187,6 +187,7 @@ def train(model):
                 data_prepare_time+=time.time()-time2
                 print('data_prepare_time{}'.format(data_prepare_time))
                 time4=time.time()
+                print(len(tgt_data1),len(tgt_data2))
                 cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha)
                 target_time+=time.time()-time4
                 print('target_time{}'.format(target_time))
@@ -210,8 +211,8 @@ def train(model):
            # print("test time:",time3-time2)
             if t_correct > correct:
                 correct = t_correct
-                save_name = os.path.join(output_dir, 'cl_step2_mmd_gate_res101_{}_{}_{}_{}_{}_to_{}_{}.pth'.format(source1_name, source2_name, source3_name,source4_name,source5_name,target_name,ep))
-             #   save_checkpoint({'model': model.state_dict()}, save_name)
+                save_name = os.path.join(output_dir, 'res101_{}_{}_{}_{}_{}_to_{}_{}.pth'.format(source1_name, source2_name, source3_name,source4_name,source5_name,target_name,ep))
+                save_checkpoint({'model': model.state_dict()}, save_name)
                 print('save model: {}'.format(save_name))
                     
             print(source1_name, source2_name,source3_name,source4_name,source5_name, "to", target_name, "%s max correct:" % target_name, correct.item(), "\n") 
@@ -735,7 +736,7 @@ def test(model,source):
             correct += pred.eq(target.data.view_as(pred)).cpu().sum()
             pred = pred1.data.max(1)[1]
             correct1 += pred.eq(target.data.view_as(pred)).cpu().sum()
-        num=len(target_test_loader.dataset)
+        num=num*batch_size_tgt#len(target_test_loader.dataset)
         test_loss /= num#len(target_test_loader.dataset)
        # from __future__ import division
         print(target_name, '\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.4f}%)\n'.format(
@@ -771,7 +772,7 @@ def test_source(model,source):
             correct += pred.eq(target.data.view_as(pred)).cpu().sum()
             pred = pred1.data.max(1)[1]
             correct1 += pred.eq(target.data.view_as(pred)).cpu().sum()
-        num=len(source_test_loader.dataset)
+        num=num*batch_size_tgt#len(source_test_loader.dataset)
         test_loss /= num#len(target_test_loader.dataset)
        # from __future__ import division
         print(target_name, '\nTest source2 set: Average loss: {:.4f}, Accuracy: {}/{} ({:.4f}%)\n'.format(

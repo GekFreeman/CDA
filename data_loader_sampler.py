@@ -63,7 +63,7 @@ def load_training_source1(root_path, dir, batch_size, kwargs):
          transforms.ToTensor()])
     data = datasets.ImageFolder(root=root_path + dir, transform=transform);
     
-    cls1_num = len(data.classes) # 类别总数
+    cls1_num = len(data.classes)-245     # 类别总数
     
     data_cls1=list(np.random.choice(cls1_num,size=cls1_num // 2,replace=False))
     
@@ -89,7 +89,7 @@ def load_training_source1(root_path, dir, batch_size, kwargs):
     sampler2 = torch.utils.data.sampler.SubsetRandomSampler(index2)
     train_loader1 = torch.utils.data.DataLoader(data, batch_size=batch_size, shuffle=False, drop_last=True, sampler=sampler1, **kwargs)
     train_loader2 = torch.utils.data.DataLoader(data, batch_size=batch_size, shuffle=False, drop_last=True, sampler=sampler2, **kwargs)
-    
+  
     return train_loader1,train_loader2
 def load_training_source2(root_path, dir, batch_size, kwargs):
     transform = transforms.Compose(
@@ -99,7 +99,7 @@ def load_training_source2(root_path, dir, batch_size, kwargs):
          transforms.ToTensor()])
     data = datasets.ImageFolder(root=root_path + dir, transform=transform);
     
-    cls1_num = len(data.classes) # 类别总数
+    cls1_num = len(data.classes)-245 # 类别总数
     
     data_cls1=list(np.random.choice(cls1_num,size=cls1_num // 2,replace=False))
     
@@ -135,7 +135,7 @@ def load_training_source3(root_path, dir, batch_size, kwargs):
          transforms.ToTensor()])
     data = datasets.ImageFolder(root=root_path + dir, transform=transform);
     
-    cls1_num = len(data.classes) # 类别总数
+    cls1_num = len(data.classes)-245 # 类别总数
     
     data_cls1=list(np.random.choice(cls1_num,size=cls1_num // 2,replace=False))
     
@@ -172,7 +172,7 @@ def load_training_source4(root_path, dir, batch_size, kwargs):
          transforms.ToTensor()])
     data = datasets.ImageFolder(root=root_path + dir, transform=transform);
     
-    cls1_num = len(data.classes) # 类别总数
+    cls1_num = len(data.classes)-245 # 类别总数
     
     data_cls1=list(np.random.choice(cls1_num,size=cls1_num // 2,replace=False))
     
@@ -210,7 +210,7 @@ def load_training_source5(root_path, dir, batch_size, kwargs):
          transforms.ToTensor()])
     data = datasets.ImageFolder(root=root_path + dir, transform=transform);
     
-    cls1_num = len(data.classes) # 类别总数
+    cls1_num = len(data.classes)-245 # 类别总数
     
     data_cls1=list(np.random.choice(cls1_num,size=cls1_num // 2,replace=False))
     
@@ -261,7 +261,7 @@ def load_training_target(root_path, dir, batch_size, kwargs):
     random.shuffle(index2)
     sampler1 = torch.utils.data.sampler.SubsetRandomSampler(index1)                                                                                                                                                                    
     sampler2 = torch.utils.data.sampler.SubsetRandomSampler(index2)"""
-    sample_num = len(data)
+    sample_num = len(data.classes)-245
     index=list(i for i in range(sample_num))
     random.shuffle(index)
    
@@ -304,10 +304,25 @@ def load_testing(root_path, dir, batch_size, kwargs):
     transform = transforms.Compose(
         [transforms.Resize([224, 224]),transforms.ToTensor()])
     data = datasets.ImageFolder(root=root_path + dir, transform=transform)
-    test_loader = torch.utils.data.DataLoader(data, batch_size=batch_size,shuffle=True, drop_last=True, **kwargs)#drop_last=True,
+    cls1_num = len(data.classes)-245 # 类别总数
+    
+    data_cls1=list(i for i in range(cls1_num))
+    index1=[]
+    for i in range(len(data)):
+        if data.imgs[i][1] in data_cls1:
+            index1.append(i)
+#     pdb.set_trace()
+    # shuffle, 但这里的shuffle仅执行一次, 而不是每个epoch执行一次, 可优化
+    random.shuffle(index1)
+   
+    sampler1 = torch.utils.data.sampler.SubsetRandomSampler(index1)                                                                                                                                                                    
+   
+    train_loader1 = torch.utils.data.DataLoader(data, batch_size=batch_size, shuffle=False, drop_last=True, sampler=sampler1, **kwargs)
+   
+   # test_loader = torch.utils.data.DataLoader(data, batch_size=batch_size,shuffle=True, drop_last=True, **kwargs)#drop_last=True,
     
     ## pdb.set_trace()
-    return test_loader
+    return train_loader1
 def sample_sameclass(source_data,source_label,tgt_data,tgt_label):
     index_s=[]
     index_t=[]
