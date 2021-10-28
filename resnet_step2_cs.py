@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torch
 #from dsbn import DomainSpecificBatchNorm2d
-import data_loader
+import data_loader_sampler as data_loader
 import numpy as np
 import pdb
 import os
@@ -190,14 +190,14 @@ class MFSAN(nn.Module):
     def __init__(self, num_classes=31):
         super(MFSAN, self).__init__()
         self.sharedNet = resnet101(True)
-        self.sonnet1 = ADDneck(2048, 1024)
-        self.sonnet2 = ADDneck(2048, 1024)
-        self.cls_fc_son1 = nn.Linear(1024, num_classes)
-        self.cls_fc_son2 = nn.Linear(1024, num_classes)  
+        self.sonnet1 = ADDneck(2048, 256)
+        self.sonnet2 = ADDneck(2048, 256)
+        self.cls_fc_son1 = nn.Linear(256, num_classes)
+        self.cls_fc_son2 = nn.Linear(256, num_classes)  
         self.avgpool = nn.AvgPool2d(7, stride=1)
         self.sigmoid=nn.Sigmoid().cuda()
 
-        self.gate=torch.ones(1024).cuda()#.cuda(1)
+        self.gate=torch.ones(256).cuda()#.cuda(1)
        # self.gate=torch.nn.DataParallel(self.gate)
         
         
@@ -205,7 +205,7 @@ class MFSAN(nn.Module):
         
         #self.mm = MM(256, 128)
 
-    def forward(self, data_src1, label_src1 = 0,data_src2=0, label_src2 = 0, data_tgt1 = 0,data_tgt2 = 0, step = 1,alpha=1):
+    def forward(self, data_src1, label_src1 = 0,data_src2=0, label_src2 = 0, data_tgt1 = 0, data_tgt2 = 0, step = 1,alpha=1,label_tgt1 = 0,label_tgt2= 0,):
         mmd_loss = 0
         m=0.9*torch.ones(1).cuda()
         if self.training == True:
@@ -222,6 +222,7 @@ class MFSAN(nn.Module):
                 mmd_src1=pred_src1
                 pred_src1 = self.cls_fc_son1(pred_src1)  
             #########tgt###############
+               # print(data_tgt1)
                 data_tgt1 = self.sharedNet(data_tgt1)        
                 data_tgt_son1 = self.sonnet1(data_tgt1)
                 data_tgt_son1 = self.avgpool(data_tgt_son1)
@@ -307,8 +308,8 @@ class MFSAN(nn.Module):
                 #cos_sim_b12 = Dotdist(data_src1_sim,data_src2_sim)
                 #sim_loss_b12 = torch.mean(cos_sim_b12, dim = 0)
                 ##########取源域一个batch内同类别的b1-T&B2-T的特征图######
-                fea_src1,lab_src1,fea_t1,lab_t1 = data_loader.sample_sameclass(data_src1_sim,label_src1,data_tgt_sim1,target_label1)
-                fea_src2,lab_src2,fea_t2,lab_t2 = data_loader.sample_sameclass(data_src2_sim,label_src2,data_tgt_sim2,target_label2)
+                fea_src1,lab_src1,fea_t1,lab_t1 =data_loader.sample_sameclass(data_src1_sim,label_src1,data_tgt_sim1,label_tgt1)
+                fea_src2,lab_src2,fea_t2,lab_t2 = data_loader.sample_sameclass(data_src2_sim,label_src2,data_tgt_sim2,label_tgt2)
                 
                # fea_src1,lab_src1,fea_t1,lab_t1 = data_src1_sim,label_src1,data_tgt_sim1,label_src1
                # fea_src2,lab_src2,fea_t2,lab_t2 = data_src2_sim,label_src2,data_tgt_sim2,label_src2 
