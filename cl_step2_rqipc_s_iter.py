@@ -23,8 +23,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(str(x) for x in num_gpu)
 device_ids=num_gpu
 
 # Training settings
-batch_size = 32
-batch_size_tgt =32#128 #64#
+batch_size =64
+batch_size_tgt= 64#128 #64#
 iteration = 20000#00#000#00#000
 iteration_point = 10000#00
 lr = 0.01
@@ -33,7 +33,7 @@ cuda = True
 seed = 8
 log_interval = 50
 l2_decay = 5e-4
-root_path = "/userhome/chengyl/UDA/multi-source/dataset/DomainNet/"
+root_path = "/userhome/chengyl/UDA/multi-source/dataset/DomainNet_test/"
 output_dir="./iteroutput"
 """
 source1_name ="clipart_test"
@@ -159,7 +159,7 @@ def train(model):
             la_thresh=0.5
             optimizer.zero_grad()
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration) )) - 1
-            tgt_data1,tgt_index1,tgt_data2, tgt_index2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
+            tgt_data1,tgt_index1,tgt_pse1,tgt_data2, tgt_index2,tgt_pse2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
             if cuda:
                # print(source_label1)
                 target_data1 = tgt_data1.cuda()
@@ -167,7 +167,7 @@ def train(model):
             tgt_data1 = Variable(target_data1)
             tgt_data2 = Variable(target_data2)
                 
-            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha)
+            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha, label_tgt1=tgt_pse1, label_tgt2=tgt_pse2)
             
             dic1=save_pred.save_target(dic1,pred_tgt1,tgt_index1)
             dic1=save_pred.save_target(dic1,pred_tgt2,tgt_index2)
@@ -278,7 +278,7 @@ def train(model):
             la_thresh=0.5
             optimizer.zero_grad()
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration) )) - 1
-            tgt_data1,tgt_index1,tgt_data2, tgt_index2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
+            tgt_data1,tgt_index1,tgt_pse1,tgt_data2, tgt_index2,tgt_pse2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
             if cuda:
                # print(source_label1)
                 target_data1 = tgt_data1.cuda()
@@ -287,7 +287,7 @@ def train(model):
             tgt_data2 = Variable(target_data2)
            
                 
-            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha)
+            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha, label_tgt1=tgt_pse1, label_tgt2=tgt_pse2)
             dic1=save_pred.save_target(dic1,pred_tgt1,tgt_index1)
             dic1=save_pred.save_target(dic1,pred_tgt2,tgt_index2)
             loss=cls_loss+gamma*mmd_loss
@@ -369,7 +369,7 @@ def train(model):
         if i<=iteration_point:
             optimizer.zero_grad()
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration) )) - 1
-            cls_loss,sim_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,target_data1 ,target_data2,step = 1,alpha=alpha)
+            cls_loss,sim_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,target_data1 ,target_data2,step = 1,alpha=alpha, label_tgt1=tgt_pse1, label_tgt2=tgt_pse2)
             dic1=save_pred.save_target(dic1,pred_tgt1,target_index1)
             dic1=save_pred.save_target(dic1,pred_tgt2,target_index1)
             loss = cls_loss + gamma*sim_loss#+gamma*mmd_loss
@@ -393,7 +393,7 @@ def train(model):
             la_thresh=0.5
             optimizer.zero_grad()
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration) )) - 1
-            tgt_data1,tgt_index1,tgt_data2, tgt_index2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
+            tgt_data1,tgt_index1,tgt_pse1,tgt_data2, tgt_index2,tgt_pse2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
             if cuda:
                # print(source_label1)
                 target_data1 = tgt_data1.cuda()
@@ -505,7 +505,7 @@ def train(model):
             la_thresh=0.5
             optimizer.zero_grad()
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration) )) - 1
-            tgt_data1,tgt_index1,tgt_data2, tgt_index2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
+            tgt_data1,tgt_index1,tgt_pse1,tgt_data2, tgt_index2,tgt_pse2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
             if cuda:
                # print(source_label1)
                 target_data1 = tgt_data1.cuda()
@@ -513,7 +513,7 @@ def train(model):
             tgt_data1 = Variable(target_data1)
             tgt_data2 = Variable(target_data2)
 
-            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha)
+            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha, label_tgt1=tgt_pse1, label_tgt2=tgt_pse2)
           #  cls_loss =(cls1_loss+cls2_loss)*0.5# 0.5*(cls_loss1+sim_loss1)+cls_loss #+ cls_loss1#sim_loss1
             dic1=save_pred.save_target(dic1,pred_tgt1,tgt_index1)
             dic1=save_pred.save_target(dic1,pred_tgt2,tgt_index2)
@@ -621,7 +621,7 @@ def train(model):
             la_thresh=0.5
             optimizer.zero_grad()
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration) )) - 1
-            tgt_data1,tgt_index1,tgt_data2, tgt_index2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
+            tgt_data1,tgt_index1,tgt_pse1,tgt_data2, tgt_index2,tgt_pse2=data_loader.load_sameclass_target(root_path, target_name,dic1,source_data1, source_label1, source_data2,source_label2,batch_size)
             if cuda:
                # print(source_label1)
                 target_data1 = tgt_data1.cuda()
@@ -630,7 +630,7 @@ def train(model):
             tgt_data2 = Variable(target_data2)
             
                 
-            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha)
+            cls_loss,mmd_loss,pred_tgt1,pred_tgt2 = model(source_data1,source_label1, source_data2,source_label2,tgt_data1,tgt_data2,step = 2,alpha=alpha, label_tgt1=tgt_pse1, label_tgt2=tgt_pse2)
             dic1=save_pred.save_target(dic1,pred_tgt1,tgt_index1)
             dic1=save_pred.save_target(dic1,pred_tgt2,tgt_index2)
             loss=cls_loss+gamma*mmd_loss
@@ -726,7 +726,7 @@ def test(model,source):
         print('\nsource1 accnum {}'.format(correct1))
     return correct"""
 if __name__ == '__main__':
-    model = models.MFSAN(num_classes=345)
+    model = models.MFSAN(num_classes=100)
     #print('with simi')
     #print('models1-resnetdsbn')
     #print('cl_mfsandsbn')
