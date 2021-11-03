@@ -262,11 +262,16 @@ def load_training_target(root_path, dir, batch_size, kwargs):
     sampler1 = torch.utils.data.sampler.SubsetRandomSampler(index1)                                                                                                                                                                    
     sampler2 = torch.utils.data.sampler.SubsetRandomSampler(index2)"""
     sample_num = len(data.classes)
+    
     lists=list(i for i in range(sample_num))
+    
     index = []
     for i in range(len(data)):
         if data.imgs[i][1] in lists:
+          #  print(data.imgs[i][1] )
+            
             index.append(i)
+    #print(len(data))
     random.shuffle(index)
    
     batch_sampler1 = torch.utils.data.sampler.BatchSampler(index,batch_size=batch_size,drop_last=True)  
@@ -291,13 +296,19 @@ def load_sameclass_target(root_path, dir,dic,source_data1, source_label1, source
     
     cls_num1 = num_s1
     cls_num2 = num_s2
+    source_label1=source_label1.detach().cpu().numpy()
+    source_label2=source_label2.detach().cpu().numpy()
     data_cls1=list(i for i in source_label1)
     data_cls2=list(i for i in source_label2)
     sampler_index1,label_tgt1=myImageTargetFloder(dic=dic, index=data_cls1, transform=transform)
     sampler_index2,label_tgt2=myImageTargetFloder(dic=dic, index=data_cls2, transform=transform)
     sampler1 = torch.utils.data.sampler.SequentialSampler(sampler_index1)                                                                                                                       
     sampler2 = torch.utils.data.sampler.SequentialSampler(sampler_index2)
-
+    
+  #  print(data_cls1)
+   # print(label_tgt1)
+  #  print(data_cls2)
+   # print(label_tgt2)
 
     train_loader1 = torch.utils.data.DataLoader(data, batch_size=len(sampler_index1), shuffle=False, drop_last=True, sampler=sampler1)
     train_loader2 = torch.utils.data.DataLoader(data, batch_size=len(sampler_index2), shuffle=False, drop_last=True, sampler=sampler2)
@@ -321,38 +332,21 @@ def sample_sameclass(source_data,source_label,tgt_data,tgt_label):
     c,h,w=source_data.shape[1],source_data.shape[2],source_data.shape[3]
     tgt_index=[i for i in range(tgt_data.shape[0])]
     dic=defaultdict(list)
-    for dat,lab in zip(tgt_index,tgt_label):
-        #if lab==dic.keys():
-        key=lab#.detach().cpu().numpy()
-       # key=str(key)
-        dic[key].append(dat)
-    #t=0
-    for s in range(len(source_label)):
-        s_idx=str(source_label[s].detach().cpu().numpy())        
-        if s_idx in dic.keys():#在源域中找到与目标域一样的类，记录编号
-                t=random.choice(dic[s_idx])
-                index_s.append(s)
-                index_t.append(t)
-               # visited.add(t)
-               # break
-#     # dt = {0: [0, 1, 2], 1: [3, 4, 5]}
-#     index_t = []
-#     for i in s:
-#         index_t.append(np.random.choice(dt[source_label[i]], size=1))
-    num=len(index_s)
+
+
+    num=len(tgt_label)
     s_data=torch.zeros((num,c,h,w),dtype=torch.float).cuda()
     s_label=torch.zeros(num,dtype=torch.long).cuda()
     t_data=torch.zeros((num,c,h,w),dtype=torch.float).cuda()
     t_label=torch.zeros(num,dtype=torch.long).cuda()             
    # print(s_data.dtype)
     for i in range(num):#按照编号去处数据替换原来值
-        index=index_s[i]
-        s_data[i,:]=source_data[index,:]
-        s_label[i]=source_label[index]
-    for j in range(num):
-        index=index_t[j]
-        t_data[j,:]=tgt_data[index,:]
-        t_label[j]=tgt_label[index]
+        if source_label[i] == tgt_label[i]:
+            s_data[i,:]=source_data[i,:]
+            s_label[i]=source_label[i]
+            t_data[i,:]=tgt_data[i,:]
+            t_label[i]=tgt_label[i]
+
     return s_data, s_label ,t_data,t_label
 
 ###################
