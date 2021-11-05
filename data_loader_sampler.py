@@ -304,17 +304,11 @@ def load_sameclass_target(root_path, dir,dic,source_data1, source_label1, source
     sampler_index2,label_tgt2=myImageTargetFloder(dic=dic, index=data_cls2, transform=transform)
     sampler1 = torch.utils.data.sampler.SequentialSampler(sampler_index1)                                                                                                                       
     sampler2 = torch.utils.data.sampler.SequentialSampler(sampler_index2)
-    
-  #  print(data_cls1)
-   # print(label_tgt1)
-  #  print(data_cls2)
-   # print(label_tgt2)
-
     train_loader1 = torch.utils.data.DataLoader(data, batch_size=len(sampler_index1), shuffle=False, drop_last=True, sampler=sampler1)
     train_loader2 = torch.utils.data.DataLoader(data, batch_size=len(sampler_index2), shuffle=False, drop_last=True, sampler=sampler2)
     train_loader1=iter(train_loader1).next()[0]
     train_loader2=iter(train_loader2).next()[0]
-   # print(source_label1,label_tgt1)
+
     return train_loader1,sampler_index1,label_tgt1,train_loader2, sampler_index2,label_tgt2
 def load_testing(root_path, dir, batch_size, kwargs):
     transform = transforms.Compose(
